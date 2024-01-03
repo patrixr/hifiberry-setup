@@ -1,0 +1,38 @@
+---
+- hosts: hifiberry
+  tasks:
+    - name: Create a data directory
+      ansible.builtin.file:
+        path: /data
+        state: directory
+        mode: '0755'
+
+    - name: Clone tidal connect
+      ansible.builtin.git:
+        repo: https://github.com/TonyTromp/tidal-connect-docker.git
+        dest: /data/tidal-connect-docker
+        version: HEAD
+        update: yes
+        clone: yes
+      register: tidal_git
+
+    - name: Install pexpect
+      pip:
+        name: pexpect
+
+    - name: Install tidal connect
+      ansible.builtin.expect:
+        command: /usr/bin/sh ./install_hifiberry.sh
+        chdir: /data/tidal-connect-docker
+        responses:
+          "Choose your output Device": "0"
+      register: install_out
+      when: tidal_git.changed
+
+    - debug: var=install_out.stdout_lines
+
+    - name: Start tidal connect
+      ansible.builtin.shell:
+        cmd: ./start-tidal-service.sh
+        chdir: /data/tidal-connect-docker
+      when: tidal_git.changed

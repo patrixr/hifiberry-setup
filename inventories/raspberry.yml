@@ -1,0 +1,7 @@
+hifiberry:
+  hosts:
+    hifiberry.local:
+  vars:
+    ansible_user: root
+    ansible_password: hifiberry
+    ansible_port: 22
